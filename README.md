@@ -71,25 +71,25 @@ pediritos/
 
 ### Applications
 
-| Service | Responsibility |
-|---|---|
-| `api-gateway` | Entry point for external requests |
-| `auth-service` | Authentication and authorization |
-| `catalog-service` | Products, categories, and catalog management |
-| `order-service` | Order creation and management |
-| `payment-service` | Payment processing |
-| `stock-service` | Inventory management |
-| `notification-service` | Notification delivery |
+| Service                | Responsibility                               |
+| ---------------------- | -------------------------------------------- |
+| `api-gateway`          | Entry point for external requests            |
+| `auth-service`         | Authentication and authorization             |
+| `catalog-service`      | Products, categories, and catalog management |
+| `order-service`        | Order creation and management                |
+| `payment-service`      | Payment processing                           |
+| `stock-service`        | Inventory management                         |
+| `notification-service` | Notification delivery                        |
 
 ### Shared Packages
 
-| Package | Responsibility |
-|---|---|
-| `common` | Shared utilities and common resources |
-| `config` | Shared configuration |
-| `logger` | Standardized logging |
-| `messaging` | Communication between services |
-| `contracts` | Shared DTOs, types, and contracts |
+| Package     | Responsibility                        |
+| ----------- | ------------------------------------- |
+| `common`    | Shared utilities and common resources |
+| `config`    | Shared configuration                  |
+| `logger`    | Standardized logging                  |
+| `messaging` | Communication between services        |
+| `contracts` | Shared DTOs, types, and contracts     |
 
 ---
 
@@ -258,14 +258,14 @@ This becomes increasingly valuable as the number of applications and packages gr
 
 ## 📜 Scripts
 
-| Command | Description |
-|---|---|
-| `pnpm dev` | Start services in development mode |
-| `pnpm build` | Build applications and packages |
-| `pnpm test` | Run tests |
-| `pnpm lint` | Run ESLint |
-| `pnpm format` | Format the codebase |
-| `pnpm install` | Install dependencies |
+| Command        | Description                        |
+| -------------- | ---------------------------------- |
+| `pnpm dev`     | Start services in development mode |
+| `pnpm build`   | Build applications and packages    |
+| `pnpm test`    | Run tests                          |
+| `pnpm lint`    | Run ESLint                         |
+| `pnpm format`  | Format the codebase                |
+| `pnpm install` | Install dependencies               |
 
 ---
 
