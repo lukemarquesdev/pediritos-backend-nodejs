@@ -6,7 +6,6 @@ import { ConfigModule } from '@nestjs/config';
 
 import { configuration, envValidationSchema } from '@pediritos/config';
 
-
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 @Module({

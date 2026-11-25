@@ -1,0 +1,190 @@
+name: pediritos
+
+x-app-defaults: &app-defaults
+  restart: unless-stopped
+  environment: &app-environment
+    NODE_ENV: ${NODE_ENV:-development}
+    PORT: 3000
+    JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-before-deploy-32chars}
+    JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+    JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+    RABBITMQ_URL: amqp://${RABBITMQ_USER:-pediritos}:${RABBITMQ_PASSWORD:-pediritos_dev_only}@rabbitmq:5672
+    REDIS_URL: redis://redis:6379
+    SMTP_HOST: mailpit
+    SMTP_PORT: 1025
+    SMTP_SECURE: "false"
+    MAIL_FROM: ${MAIL_FROM:-Pediritos <no-reply@pediritos.local>}
+  depends_on: &app-dependencies
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+    mailpit:
+      condition: service_started
+  networks:
+    - pediritos
+  healthcheck:
+    test:
+      - CMD
+      - node
+      - -e
+      - "fetch('http://127.0.0.1:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+    interval: 20s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pediritos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pediritos_dev_only}
+      POSTGRES_DB: ${POSTGRES_DB:-pediritos}
+    ports:
+      - 127.0.0.1:${POSTGRES_PORT:-5432}:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres-init.sh:/docker-entrypoint-initdb.d/10-create-service-databases.sh:ro
+    networks:
+      - pediritos
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, "yes"]
+    ports:
+      - 127.0.0.1:${REDIS_PORT:-6379}:6379
+    volumes:
+      - redis-data:/data
+    networks:
+      - pediritos
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-pediritos}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-pediritos_dev_only}
+    ports:
+      - 127.0.0.1:${RABBITMQ_PORT:-5672}:5672
+      - 127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - pediritos
+    healthcheck:
+      test: [CMD, rabbitmq-diagnostics, -q, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - 127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025
+      - 127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025
+    networks:
+      - pediritos
+    healthcheck:
+      test: [CMD, /mailpit, readyz]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    <<: *app-defaults
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    environment:
+      <<: *app-environment
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pediritos}:${POSTGRES_PASSWORD:-pediritos_dev_only}@postgres:5432/pediritos_auth
+    ports:
+      - 127.0.0.1:${API_GATEWAY_PORT:-3000}:3000
+
+  auth-service:
+    <<: *app-defaults
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    environment:
+      <<: *app-environment
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pediritos}:${POSTGRES_PASSWORD:-pediritos_dev_only}@postgres:5432/pediritos_auth
+    ports:
+      - 127.0.0.1:${AUTH_SERVICE_PORT:-3001}:3000
+
+  catalog-service:
+    <<: *app-defaults
+    build:
+      context: .
+      dockerfile: apps/catalog-service/Dockerfile
+    environment:
+      <<: *app-environment
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pediritos}:${POSTGRES_PASSWORD:-pediritos_dev_only}@postgres:5432/pediritos_catalog
+    ports:
+      - 127.0.0.1:${CATALOG_SERVICE_PORT:-3002}:3000
+
+  order-service:
+    <<: *app-defaults
+    build:
+      context: .
+      dockerfile: apps/order-service/Dockerfile
+    environment:
+      <<: *app-environment
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pediritos}:${POSTGRES_PASSWORD:-pediritos_dev_only}@postgres:5432/pediritos_orders
+    ports:
+      - 127.0.0.1:${ORDER_SERVICE_PORT:-3003}:3000
+
+  payment-service:
+    <<: *app-defaults
+    build:
+      context: .
+      dockerfile: apps/payment-service/Dockerfile
+    environment:
+      <<: *app-environment
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pediritos}:${POSTGRES_PASSWORD:-pediritos_dev_only}@postgres:5432/pediritos_payments
+    ports:
+      - 127.0.0.1:${PAYMENT_SERVICE_PORT:-3004}:3000
+
+  stock-service:
+    <<: *app-defaults
+    build:
+      context: .
+      dockerfile: apps/stock-service/Dockerfile
+    environment:
+      <<: *app-environment
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pediritos}:${POSTGRES_PASSWORD:-pediritos_dev_only}@postgres:5432/pediritos_stock
+    ports:
+      - 127.0.0.1:${STOCK_SERVICE_PORT:-3005}:3000
+
+  notification-service:
+    <<: *app-defaults
+    build:
+      context: .
+      dockerfile: apps/notification-service/Dockerfile
+    environment:
+      <<: *app-environment
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pediritos}:${POSTGRES_PASSWORD:-pediritos_dev_only}@postgres:5432/pediritos_notifications
+    ports:
+      - 127.0.0.1:${NOTIFICATION_SERVICE_PORT:-3006}:3000
+
+networks:
+  pediritos:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  rabbitmq-data:

@@ -1,2 +1,2 @@
-export { envValidationSchema } from './env.validation';
-export { default as configuration } from './configuration';
+export { envValidationSchema } from './env.validation.js';
+export { default as configuration } from './configuration.js';

@@ -1,11 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module.js';
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication | undefined;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -17,6 +16,10 @@ describe('AppController (e2e)', () => {
   });
 
   it('/ (GET)', () => {
+    if (!app) {
+      throw new Error('Nest application was not initialized');
+    }
+
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
@@ -24,6 +27,6 @@ describe('AppController (e2e)', () => {
   });
 
   afterEach(async () => {
-    await app.close();
+    await app?.close();
   });
 });

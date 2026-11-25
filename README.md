@@ -99,6 +99,9 @@ pediritos/
 
 - Node.js
 - TypeScript
+
+> Implementation is in progress. See [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audited state, verified commands, and next phase. The service folders currently contain NestJS scaffolds; their business features and the infrastructure described in the target architecture are being implemented incrementally.
+
 - NestJS
 
 ### Monorepo

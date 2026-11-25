@@ -1,5 +1,8 @@
 # compiled output
 /dist
+**/dist/
+*.tsbuildinfo
+.turbo/
 node_modules/
 /build
 
