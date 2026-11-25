@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  CUSTOMER
+  ADMIN
+}
+
+enum ActionTokenPurpose {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+model User {
+  id             String         @id @default(uuid()) @db.Uuid
+  email          String         @unique @db.VarChar(320)
+  displayName    String         @map("display_name") @db.VarChar(120)
+  passwordHash   String         @map("password_hash") @db.VarChar(255)
+  emailVerified  Boolean        @default(false) @map("email_verified")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  disabledAt     DateTime?      @map("disabled_at") @db.Timestamptz(3)
+  userRoles      UserRole[]
+  refreshTokens  RefreshToken[]
+  actionTokens   ActionToken[]
+
+  @@index([disabledAt])
+  @@map("users")
+}
+
+model Role {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      RoleName   @unique
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  userRoles UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId String @map("user_id") @db.Uuid
+  roleId String @map("role_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model RefreshToken {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  jti         String    @unique @db.Uuid
+  tokenHash   String    @unique @map("token_hash") @db.Char(64)
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(3)
+  replacedBy  String?   @map("replaced_by") @db.Uuid
+  userAgent   String?   @map("user_agent") @db.VarChar(500)
+  ipAddress   String?   @map("ip_address") @db.VarChar(64)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model ActionToken {
+  id         String            @id @default(uuid()) @db.Uuid
+  userId     String            @map("user_id") @db.Uuid
+  purpose    ActionTokenPurpose
+  tokenHash  String            @unique @map("token_hash") @db.Char(64)
+  expiresAt  DateTime          @map("expires_at") @db.Timestamptz(3)
+  consumedAt DateTime?         @map("consumed_at") @db.Timestamptz(3)
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose, consumedAt])
+  @@index([expiresAt])
+  @@map("action_tokens")
+}
+
+model OutboxEvent {
+  id            String    @id @db.Uuid
+  eventType     String    @map("event_type") @db.VarChar(120)
+  eventVersion  Int       @default(1) @map("event_version")
+  routingKey    String    @map("routing_key") @db.VarChar(200)
+  correlationId String    @map("correlation_id") @db.VarChar(128)
+  event         Json
+  occurredAt    DateTime  @map("occurred_at") @db.Timestamptz(3)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  publishedAt   DateTime? @map("published_at") @db.Timestamptz(3)
+  availableAt   DateTime  @default(now()) @map("available_at") @db.Timestamptz(3)
+  attempts      Int       @default(0)
+  lastError     String?   @map("last_error") @db.VarChar(1000)
+
+  @@index([publishedAt, availableAt, createdAt])
+  @@map("outbox_events")
+}
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id") @db.Uuid
+  processedAt DateTime @default(now()) @map("processed_at") @db.Timestamptz(3)
+
+  @@map("processed_events")
+}

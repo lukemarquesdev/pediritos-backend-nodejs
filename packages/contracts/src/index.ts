@@ -10,6 +10,8 @@ export const EVENT_TYPES = [
   'payment.failed',
   'stock.reserved',
   'stock.reservation_failed',
+  'auth.verification_requested',
+  'auth.password_reset_requested',
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number];
@@ -44,6 +46,12 @@ export interface PaymentResultPayload {
   amountMinor: number;
   currency: string;
   reason?: string;
+}
+
+export interface AuthActionRequestedPayload {
+  userId: string;
+  email: string;
+  encryptedToken: string;
 }
 
 export class EventValidationError extends Error {
@@ -104,6 +112,20 @@ export const paymentResultEventSchema = Joi.object({
     .required(),
 }).unknown(false);
 
+export const authActionRequestedEventSchema = Joi.object({
+  ...envelopeBase,
+  eventType: Joi.string()
+    .valid('auth.verification_requested', 'auth.password_reset_requested')
+    .required(),
+  payload: Joi.object({
+    userId: Joi.string().uuid().required(),
+    email: Joi.string().email().required(),
+    encryptedToken: Joi.string().min(40).max(1024).required(),
+  })
+    .unknown(false)
+    .required(),
+}).unknown(false);
+
 export function validateEventEnvelope<TPayload = Record<string, unknown>>(
   input: unknown,
 ): EventEnvelope<TPayload> {
@@ -113,7 +135,10 @@ export function validateEventEnvelope<TPayload = Record<string, unknown>>(
       ? orderCreatedEventSchema
       : candidate?.eventType === 'payment.approved' || candidate?.eventType === 'payment.failed'
         ? paymentResultEventSchema
-        : eventEnvelopeSchema;
+        : candidate?.eventType === 'auth.verification_requested' ||
+            candidate?.eventType === 'auth.password_reset_requested'
+          ? authActionRequestedEventSchema
+          : eventEnvelopeSchema;
   const { error, value } = schema.validate(input, {
     abortEarly: false,
     convert: false,

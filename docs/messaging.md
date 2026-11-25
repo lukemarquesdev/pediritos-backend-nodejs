@@ -1,5 +1,7 @@
 # Messaging
 
+Auth writes `auth.verification_requested` and `auth.password_reset_requested` to its PostgreSQL outbox within the same transaction that issues one-time action tokens. The action token is stored in `action_tokens` only as a SHA-256 hash. Its outbox copy is AES-256-GCM encrypted with `AUTH_ACTION_ENCRYPTION_KEY`; the Notification Service must decrypt it in memory to build the email link and must not log or persist the plaintext. Configure the same local/deployment key for Auth and Notification.
+
 The shared `@pediritos/messaging` package provides a durable topic exchange named `pediritos.events.v1` and a dead-letter exchange named `pediritos.events.v1.dead`.
 
 ## Envelope

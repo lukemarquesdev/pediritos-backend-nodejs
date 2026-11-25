@@ -8,6 +8,7 @@ describe('environment validation', () => {
       RABBITMQ_URL: 'amqp://user:pass@localhost:5672',
       REDIS_URL: 'redis://localhost:6379',
       JWT_SECRET: 'a-local-test-secret-longer-than-thirty-two-characters',
+      JWT_REFRESH_SECRET: 'a-local-refresh-secret-longer-than-thirty-two-characters',
     });
 
     expect(result.NODE_ENV).toBe('development');

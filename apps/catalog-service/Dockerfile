@@ -13,4 +13,4 @@ RUN corepack enable
 WORKDIR /workspace
 COPY --from=build /workspace /workspace
 EXPOSE 3000
-CMD ["pnpm", "--filter", "catalog-service", "start:prod"]
+CMD ["sh", "-c", "pnpm --filter catalog-service db:migrate:deploy && pnpm --filter catalog-service start:prod"]

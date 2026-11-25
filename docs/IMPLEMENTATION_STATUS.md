@@ -32,11 +32,20 @@
 - `pnpm format:check`: passed, including YAML parsing/format validation for Compose.
 - `docker compose config --quiet`: not run successfully because Docker CLI/Desktop is not installed in this environment. Container builds, health checks, and runtime startup remain unverified.
 
+## Phase 4 validation (Auth and Catalog)
+
+- Prisma Client generation passed for both service-owned schemas, with distinct generated outputs.
+- Initial PostgreSQL migration SQL was generated for each service using Prisma `migrate diff`.
+- TypeScript typecheck, Nest builds, and Oxlint passed for Auth and Catalog.
+- Unit tests passed: Auth 2 tests and Catalog 3 tests.
+- E2E smoke tests passed: one readiness route per service. Prisma and the Auth outbox poller were stubbed, so these do not exercise PostgreSQL or RabbitMQ.
+- Docker runtime and migration application against PostgreSQL remain unverified because Docker CLI/Desktop is unavailable.
+
 ## Remaining work
 
 - Validate Compose and container startup on a machine with Docker.
-- Add Prisma schemas, migrations, seeds, database repositories, durable processed-event stores, and service-specific outbox adapters.
-- Phase 4: implement Auth and Catalog, then Stock, Payment, Order/Saga, and Notification behavior.
+- Phase 4: Auth and Catalog implementations are underway. Auth supports registration/login, access and rotating refresh tokens, logout, one-time email verification and password reset tokens, hashed token persistence, RBAC claims, and transactional outbox requests. Catalog supports public categories/products, search, filters, pagination, admin CRUD guarded by ADMIN JWT, and soft deletion. Both services now have independent Prisma schemas and initial migrations; Auth has a role/admin seed.
+- Remaining in Phase 4: durable processed-event repositories and service outbox adapters for Catalog, plus Stock, Payment, Order/Saga, and Notification implementations and their focused tests.
 - Phase 5: implement API Gateway routing, authentication, rate limiting, security headers, API versioning, and Swagger.
 - Phase 6: create and integrate the responsive Next.js frontend.
 - Phase 7: test the complete asynchronous order flow and compensation paths against real PostgreSQL, Redis, and RabbitMQ containers.
@@ -44,4 +53,4 @@
 
 ## Next step
 
-Begin Phase 4 with Auth and Catalog domain implementations, backed by service-owned Prisma schemas and migrations. Before relying on the new infrastructure, validate `docker compose config` and `pnpm docker:up` where Docker is available.
+Continue Phase 4 with Stock, then Payment, Order/Saga, and Notification. Auth and Catalog have passing source checks and smoke tests; validate migration deployment and runtime integrations when Docker/PostgreSQL/RabbitMQ are available.

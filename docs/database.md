@@ -1,5 +1,7 @@
 # Database
 
+Auth and Catalog each have a separate Prisma schema, migration history, and logical database. Run `pnpm --filter auth-service db:migrate:deploy` and `pnpm --filter catalog-service db:migrate:deploy` to apply committed migrations. The Auth seed always creates CUSTOMER and ADMIN roles; it creates or updates an administrator only when both `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set. The password must contain at least 12 characters and is stored as an Argon2id hash.
+
 PostgreSQL is configured for local development through `docker-compose.yml`. The initialization script creates logical databases:
 
 - `pediritos_auth`

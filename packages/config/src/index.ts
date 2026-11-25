@@ -8,6 +8,8 @@ export interface AppEnvironment {
   RABBITMQ_URL: string;
   REDIS_URL: string;
   JWT_SECRET: string;
+  JWT_REFRESH_SECRET: string;
+  AUTH_ACTION_ENCRYPTION_KEY?: string;
   JWT_ACCESS_EXPIRES_IN: string;
   JWT_REFRESH_EXPIRES_IN: string;
   SMTP_HOST?: string;

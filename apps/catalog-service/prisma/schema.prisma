@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @db.VarChar(120)
+  slug        String    @unique @db.VarChar(140)
+  description String?   @db.VarChar(500)
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  products    Product[]
+
+  @@index([isDeleted, name])
+  @@map("categories")
+}
+
+model Product {
+  id            String    @id @default(uuid()) @db.Uuid
+  sku           String    @unique @db.VarChar(80)
+  name          String    @db.VarChar(180)
+  slug          String    @unique @db.VarChar(200)
+  description   String?   @db.Text
+  priceMinor    Int       @map("price_minor")
+  currency      String    @default("BRL") @db.Char(3)
+  imageUrl      String?   @map("image_url") @db.VarChar(2048)
+  isAvailable   Boolean   @default(true) @map("is_available")
+  isDeleted     Boolean   @default(false) @map("is_deleted")
+  categoryId    String?   @map("category_id") @db.Uuid
+  category      Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([isDeleted, isAvailable, createdAt])
+  @@index([categoryId, isDeleted])
+  @@index([name])
+  @@map("products")
+}
+
+model OutboxEvent {
+  id            String    @id @db.Uuid
+  eventType     String    @map("event_type") @db.VarChar(120)
+  eventVersion  Int       @default(1) @map("event_version")
+  routingKey    String    @map("routing_key") @db.VarChar(200)
+  correlationId String    @map("correlation_id") @db.VarChar(128)
+  event         Json
+  occurredAt    DateTime  @map("occurred_at") @db.Timestamptz(3)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  publishedAt   DateTime? @map("published_at") @db.Timestamptz(3)
+  availableAt   DateTime  @default(now()) @map("available_at") @db.Timestamptz(3)
+  attempts      Int       @default(0)
+  lastError     String?   @map("last_error") @db.VarChar(1000)
+
+  @@index([publishedAt, availableAt, createdAt])
+  @@map("outbox_events")
+}
+
+model ProcessedEvent {
+  eventId     String   @id @map("event_id") @db.Uuid
+  processedAt DateTime @default(now()) @map("processed_at") @db.Timestamptz(3)
+
+  @@map("processed_events")
+}

@@ -6,6 +6,8 @@ x-app-defaults: &app-defaults
     NODE_ENV: ${NODE_ENV:-development}
     PORT: 3000
     JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-before-deploy-32chars}
+    JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-local-refresh-secret-change-before-deploy-32chars}
+    AUTH_ACTION_ENCRYPTION_KEY: ${AUTH_ACTION_ENCRYPTION_KEY:-local-action-encryption-key-change-before-deploy-32chars}
     JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
     JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
     RABBITMQ_URL: amqp://${RABBITMQ_USER:-pediritos}:${RABBITMQ_PASSWORD:-pediritos_dev_only}@rabbitmq:5672

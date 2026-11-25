@@ -7,8 +7,13 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
-    "build": "nest build",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "pnpm prisma:generate && nest build",
+    "pretest": "pnpm prisma:generate",
+    "typecheck": "pnpm prisma:generate && tsc --noEmit -p tsconfig.json",
+    "prisma:generate": "prisma generate --schema prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema prisma/schema.prisma",
+    "db:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
+    "db:seed": "prisma db seed --schema prisma/schema.prisma",
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -24,10 +29,19 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
   },
   "dependencies": {
+    "@pediritos/config": "workspace:*",
+    "@pediritos/contracts": "workspace:*",
+    "@pediritos/logger": "workspace:*",
+    "@pediritos/messaging": "workspace:*",
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.0.0",
     "@nestjs/core": "^12.0.1",
+    "@nestjs/jwt": "^12.0.5",
     "@nestjs/platform-express": "^12.0.1",
+    "@prisma/client": "6.19.3",
+    "argon2": "^0.45.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "joi": "^18.2.7",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
@@ -43,10 +57,14 @@
     "@vitest/coverage-v8": "^4.1.2",
     "oxlint": "^1.58.0",
     "prettier": "^3.4.2",
+    "prisma": "6.19.3",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "typescript": "^6.0.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.1.2"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.mjs"
   }
 }

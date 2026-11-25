@@ -1,6 +1,7 @@
 # compiled output
 /dist
 **/dist/
+apps/*/generated/
 *.tsbuildinfo
 .turbo/
 node_modules/

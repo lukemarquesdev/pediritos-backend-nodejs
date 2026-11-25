@@ -13,4 +13,4 @@ RUN corepack enable
 WORKDIR /workspace
 COPY --from=build /workspace /workspace
 EXPOSE 3000
-CMD ["pnpm", "--filter", "auth-service", "start:prod"]
+CMD ["sh", "-c", "pnpm --filter auth-service db:migrate:deploy && pnpm --filter auth-service start:prod"]
