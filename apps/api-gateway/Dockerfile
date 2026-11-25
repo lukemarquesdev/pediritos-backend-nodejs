@@ -5,7 +5,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.js
 COPY apps ./apps
 COPY packages ./packages
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @pediritos/api-gateway build
+RUN pnpm exec turbo run build --filter=@pediritos/api-gateway...
 
 FROM node:24-alpine AS runtime
 ENV NODE_ENV=production

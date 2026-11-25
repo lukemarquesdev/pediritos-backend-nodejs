@@ -102,6 +102,12 @@ pediritos/
 
 > Implementation is in progress. See [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for the audited state, verified commands, and next phase. The service folders currently contain NestJS scaffolds; their business features and the infrastructure described in the target architecture are being implemented incrementally.
 
+## Current implementation
+
+The repository now includes development Compose configuration for PostgreSQL (separate logical databases), Redis, RabbitMQ, Mailpit, and the seven existing NestJS services. Shared packages provide environment validation, common domain primitives, structured JSON logging, versioned event contracts, RabbitMQ publishing/consumption, retries, dead-letter routing, and an outbox relay interface.
+
+The web app, Prisma schemas/migrations, and service business workflows are still pending. See [architecture](docs/architecture.md), [services](docs/services.md), [messaging](docs/messaging.md), [database](docs/database.md), and [development](docs/development.md). Docker could not be executed in the current environment because the Docker CLI is unavailable.
+
 - NestJS
 
 ### Monorepo
